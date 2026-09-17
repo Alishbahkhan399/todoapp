@@ -1,0 +1,77 @@
+{% extends 'tasks/base.html' %}
+
+{% block title %}Taskora | Register{% endblock %}
+
+{% block content %}
+<section class="auth-page section-spacing">
+    <div class="container auth-shell">
+        <div class="auth-card reveal-up">
+            <div class="auth-brand">Taskora</div>
+            <h1>Create your account</h1>
+            <p class="auth-subtitle">Start planning with clarity and confidence.</p>
+
+            <form method="post" class="auth-form" novalidate>
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="form-alert error">
+                        {% for error in form.non_field_errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="field-group">
+                    <label for="id_full_name">Full Name</label>
+                    {{ form.full_name }}
+                    {% if form.full_name.errors %}
+                        <small class="field-error">{{ form.full_name.errors|join:', ' }}</small>
+                    {% endif %}
+                </div>
+
+                <div class="field-group">
+                    <label for="id_username">Username</label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                        <small class="field-error">{{ form.username.errors|join:', ' }}</small>
+                    {% endif %}
+                </div>
+
+                <div class="field-group">
+                    <label for="id_email">Email</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <small class="field-error">{{ form.email.errors|join:', ' }}</small>
+                    {% endif %}
+                </div>
+
+                <div class="field-group">
+                    <label for="id_password1">Password</label>
+                    <div class="password-wrap">
+                        {{ form.password1 }}
+                        <button type="button" class="toggle-password" aria-label="Toggle password visibility">Show</button>
+                    </div>
+                    {% if form.password1.errors %}
+                        <small class="field-error">{{ form.password1.errors|join:', ' }}</small>
+                    {% endif %}
+                </div>
+
+                <div class="field-group">
+                    <label for="id_password2">Confirm Password</label>
+                    <div class="password-wrap">
+                        {{ form.password2 }}
+                        <button type="button" class="toggle-password" aria-label="Toggle password visibility">Show</button>
+                    </div>
+                    {% if form.password2.errors %}
+                        <small class="field-error">{{ form.password2.errors|join:', ' }}</small>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+            </form>
+
+            <p class="auth-footer">Already have an account? <a href="{% url 'login' %}">Log in</a></p>
+        </div>
+    </div>
+</section>
+{% endblock %}

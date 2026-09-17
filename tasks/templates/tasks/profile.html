@@ -1,0 +1,48 @@
+{% extends 'tasks/base.html' %}
+
+{% block title %}Taskora | Profile{% endblock %}
+
+{% block content %}
+<section class="profile-page section-spacing">
+    <div class="container profile-shell reveal-up">
+        <div class="profile-card">
+            <div class="profile-header">
+                <div class="avatar">{{ user.first_name|default:user.username|slice:':1'|upper }}</div>
+                <div>
+                    <span class="eyebrow">Profile</span>
+                    <h1>{{ user.first_name|default:user.username }}</h1>
+                </div>
+            </div>
+
+            <div class="profile-grid">
+                <div class="profile-panel">
+                    <h3>Account Details</h3>
+                    <ul class="profile-list">
+                        <li><span>Username</span><strong>{{ user.username }}</strong></li>
+                        <li><span>Email</span><strong>{{ user.email }}</strong></li>
+                        <li><span>Account Created</span><strong>{{ user.date_joined|date:'M d, Y' }}</strong></li>
+                    </ul>
+                </div>
+
+                <div class="profile-panel">
+                    <h3>Task Summary</h3>
+                    <ul class="profile-list">
+                        <li><span>Total Tasks</span><strong>{{ total_tasks }}</strong></li>
+                        <li><span>Completed</span><strong>{{ completed_tasks }}</strong></li>
+                        <li><span>Pending</span><strong>{{ pending_tasks }}</strong></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="profile-panel settings-panel">
+                <h3>Account Settings</h3>
+                <p>Keep your workspace organized, focused, and secure.</p>
+                <div class="settings-actions">
+                    <a href="{% url 'dashboard' %}" class="btn btn-primary">Open Dashboard</a>
+                    <a href="{% url 'task_create' %}" class="btn btn-secondary">Add Task</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

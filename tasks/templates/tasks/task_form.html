@@ -1,0 +1,75 @@
+{% extends 'tasks/base.html' %}
+
+{% block title %}{% if editing %}Edit Task{% else %}Create Task{% endif %}{% endblock %}
+
+{% block content %}
+<section class="form-page section-spacing">
+    <div class="container form-shell reveal-up">
+        <div class="form-card">
+            <div class="card-heading-row">
+                <div>
+                    <span class="eyebrow">{% if editing %}Update{% else %}Create{% endif %}</span>
+                    <h1>{% if editing %}Edit Task{% else %}Create Task{% endif %}</h1>
+                </div>
+            </div>
+
+            <form method="post" class="task-form">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="form-alert error">
+                        {% for error in form.non_field_errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="field-group">
+                    <label for="id_title">Task Title</label>
+                    {{ form.title }}
+                    {% if form.title.errors %}
+                        <small class="field-error">{{ form.title.errors|join:', ' }}</small>
+                    {% endif %}
+                </div>
+
+                <div class="field-group">
+                    <label for="id_description">Description</label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <small class="field-error">{{ form.description.errors|join:', ' }}</small>
+                    {% endif %}
+                </div>
+
+                <div class="split-grid two-col">
+                    <div class="field-group">
+                        <label for="id_task_date">Task Date</label>
+                        {{ form.task_date }}
+                        {% if form.task_date.errors %}
+                            <small class="field-error">{{ form.task_date.errors|join:', ' }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="field-group">
+                        <label for="id_task_time">Task Time</label>
+                        {{ form.task_time }}
+                        {% if form.task_time.errors %}
+                            <small class="field-error">{{ form.task_time.errors|join:', ' }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <label for="id_reminder_time">Reminder</label>
+                    {{ form.reminder_time }}
+                    {% if form.reminder_time.errors %}
+                        <small class="field-error">{{ form.reminder_time.errors|join:', ' }}</small>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block wide">
+                    {% if editing %}Save Changes{% else %}Create Task{% endif %}
+                </button>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}
