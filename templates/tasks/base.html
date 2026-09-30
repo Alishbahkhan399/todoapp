@@ -1,0 +1,47 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#F7F2EB">
+  <title>{% block title %}Taskora{% endblock %} · Taskora</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <div class="cursor-dot" aria-hidden="true"></div><div class="cursor-ring" aria-hidden="true"></div>
+  <header class="site-header" id="site-header">
+    <nav class="nav-wrap" aria-label="Main navigation">
+      <a class="brand" href="{% url 'tasks:home' %}"><span class="brand-mark">T</span> taskora<span class="brand-period">.</span></a>
+      <button class="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false"><span></span><span></span></button>
+      <div class="nav-links">
+        {% if user.is_authenticated %}
+          <a href="{% url 'tasks:dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">Dashboard</a>
+          <a href="{% url 'tasks:task_create' %}" class="{% if request.resolver_match.url_name == 'task_create' %}active{% endif %}">Add task</a>
+          <a href="{% url 'tasks:profile' %}" class="{% if request.resolver_match.url_name == 'profile' %}active{% endif %}">Profile</a>
+          <form method="post" action="{% url 'tasks:logout' %}" class="nav-logout">{% csrf_token %}<button class="nav-logout-button" type="submit">Log out</button></form>
+        {% else %}
+          <a href="{% url 'tasks:home' %}" class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">Home</a>
+          <a href="{% url 'tasks:login' %}">Log in</a>
+          <a class="nav-cta" href="{% url 'tasks:register' %}">Get started <span aria-hidden="true">&#8599;</span></a>
+        {% endif %}
+      </div>
+    </nav>
+  </header>
+  <main>{% block content %}{% endblock %}</main>
+  <footer class="site-footer">
+    <div class="footer-inner"><a class="brand" href="{% url 'tasks:home' %}"><span class="brand-mark">T</span> taskora<span class="brand-period">.</span></a><p>Organize your time. Accomplish what matters.</p>
+      <div class="footer-links"><a href="{% url 'tasks:home' %}">Home</a>{% if user.is_authenticated %}<a href="{% url 'tasks:dashboard' %}">Dashboard</a><a href="{% url 'tasks:task_create' %}">Add task</a><a href="{% url 'tasks:profile' %}">Profile</a>{% else %}<a href="{% url 'tasks:login' %}">Log in</a><a href="{% url 'tasks:register' %}">Register</a>{% endif %}</div>
+      <small>&copy; 2026 Taskora. All rights reserved.</small>
+    </div>
+  </footer>
+  <div class="toast-stack" aria-live="polite" aria-atomic="false">{% for message in messages %}<div class="toast toast-{{ message.tags|default:'info' }}"><span>{{ message }}</span><button type="button" class="toast-close" aria-label="Dismiss notification">&times;</button></div>{% endfor %}</div>
+  <div class="reminder-overlay" id="reminder-overlay" aria-hidden="true"><section class="reminder-dialog" role="dialog" aria-modal="true" aria-labelledby="reminder-title"><span class="reminder-symbol" aria-hidden="true">&#9678;</span><p class="eyebrow">A moment for what matters</p><h2 id="reminder-title">Task reminder</h2><p class="reminder-task-name" id="reminder-task-name"></p><p class="muted">Your scheduled task is ready when you are.</p><div class="dialog-actions"><a class="button button-primary" id="reminder-open" href="#">Open task <span aria-hidden="true">&#8599;</span></a><button class="button button-quiet" type="button" id="reminder-dismiss">Dismiss</button></div></section></div>
+  <script src="{% static 'js/main.js' %}" defer></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

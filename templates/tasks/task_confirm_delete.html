@@ -1,0 +1,5 @@
+{% extends 'tasks/base.html' %}
+{% block title %}Delete task{% endblock %}
+{% block content %}
+<section class="delete-page section-shell page-enter"><div class="delete-mark">&times;</div><p class="eyebrow">ONE LAST CHECK</p><h1>Delete this <em>task?</em></h1><p class="muted">“{{ task.title }}” will be permanently removed from your list.</p><form method="post" class="form-actions">{% csrf_token %}<a class="button button-quiet" href="{% url 'tasks:task_detail' task.pk %}">Keep task</a><button type="submit" class="button button-primary">Delete task</button></form></section>
+{% endblock %}

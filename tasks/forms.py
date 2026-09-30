@@ -1,59 +1,79 @@
-from datetime import datetime
-
 from django import forms
+from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import User
+from django.utils import timezone
 
 from .models import Task
 
+User = get_user_model()
 
-class RegistrationForm(UserCreationForm):
-    full_name = forms.CharField(
-        max_length=150,
-        required=True,
-        label='Full Name',
-        widget=forms.TextInput(attrs={'placeholder': 'Your full name'}),
-    )
-    email = forms.EmailField(
-        required=True,
-        widget=forms.EmailInput(attrs={'placeholder': 'you@example.com'}),
-    )
+
+class RegisterForm(UserCreationForm):
+    first_name = forms.CharField(max_length=150, label="Full name")
+    email = forms.EmailField()
 
     class Meta:
         model = User
-        fields = ['full_name', 'username', 'email', 'password1', 'password2']
+        fields = ("first_name", "username", "email", "password1", "password2")
 
-    def save(self, commit=True):
-        user = super().save(commit=False)
-        user.first_name = self.cleaned_data['full_name']
-        user.email = self.cleaned_data['email']
-        if commit:
-            user.save()
-        return user
+    def clean_email(self):
+        email = self.cleaned_data["email"].strip().lower()
+        if User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError("An account with this email already exists.")
+        return email
+
+
+class LoginForm(forms.Form):
+    identifier = forms.CharField(label="Username or email")
+    password = forms.CharField(widget=forms.PasswordInput)
+
+    def __init__(self, request=None, *args, **kwargs):
+        self.request = request
+        self.user = None
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned = super().clean()
+        identifier = cleaned.get("identifier", "").strip()
+        password = cleaned.get("password")
+        if identifier and password:
+            user = User.objects.filter(email__iexact=identifier).first()
+            username = user.get_username() if user else identifier
+            self.user = authenticate(self.request, username=username, password=password)
+            if self.user is None:
+                raise forms.ValidationError("Those login details didn't match an account.")
+        return cleaned
+
+    def get_user(self):
+        return self.user
 
 
 class TaskForm(forms.ModelForm):
+    due_at = forms.DateTimeField(
+        label="Date and time",
+        input_formats=["%Y-%m-%dT%H:%M"],
+        widget=forms.DateTimeInput(format="%Y-%m-%dT%H:%M", attrs={"type": "datetime-local"}),
+    )
+    reminder_at = forms.DateTimeField(
+        label="Remind me at",
+        required=False,
+        input_formats=["%Y-%m-%dT%H:%M"],
+        widget=forms.DateTimeInput(format="%Y-%m-%dT%H:%M", attrs={"type": "datetime-local"}),
+    )
+
     class Meta:
         model = Task
-        fields = ['title', 'description', 'task_date', 'task_time', 'reminder_time']
-        widgets = {
-            'title': forms.TextInput(attrs={'placeholder': 'Complete Django project'}),
-            'description': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Finish the authentication and dashboard implementation.'}),
-            'task_date': forms.DateInput(attrs={'type': 'date'}),
-            'task_time': forms.TimeInput(attrs={'type': 'time'}),
-            'reminder_time': forms.TimeInput(attrs={'type': 'time'}),
-        }
+        fields = ("title", "description", "due_at", "reminder_at")
+        widgets = {"description": forms.Textarea(attrs={"rows": 4})}
 
     def clean(self):
-        cleaned_data = super().clean()
-        task_date = cleaned_data.get('task_date')
-        task_time = cleaned_data.get('task_time')
-        reminder_time = cleaned_data.get('reminder_time')
-
-        if task_date and task_time and reminder_time:
-            task_dt = datetime.combine(task_date, task_time)
-            reminder_dt = datetime.combine(task_date, reminder_time)
-            if reminder_dt > task_dt:
-                raise forms.ValidationError('Reminder time must be earlier than or equal to the task time.')
-
-        return cleaned_data
+        cleaned = super().clean()
+        due_at = cleaned.get("due_at")
+        reminder_at = cleaned.get("reminder_at")
+        if reminder_at and due_at and reminder_at > due_at:
+            self.add_error("reminder_at", "Your reminder needs to be before the task is due.")
+        if due_at and timezone.is_naive(due_at):
+            cleaned["due_at"] = timezone.make_aware(due_at, timezone.get_current_timezone())
+        if reminder_at and timezone.is_naive(reminder_at):
+            cleaned["reminder_at"] = timezone.make_aware(reminder_at, timezone.get_current_timezone())
+        return cleaned

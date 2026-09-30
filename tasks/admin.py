@@ -5,7 +5,7 @@ from .models import Task
 
 @admin.register(Task)
 class TaskAdmin(admin.ModelAdmin):
-    list_display = ('title', 'user', 'task_date', 'task_time', 'reminder_time', 'completed', 'created_at')
-    list_filter = ('completed', 'task_date', 'user')
-    search_fields = ('title', 'description', 'user__username')
-    ordering = ('-created_at',)
+	list_display = ("title", "user", "due_at", "reminder_at", "completed", "created_at")
+	list_filter = ("completed", "due_at", "created_at")
+	search_fields = ("title", "description", "user__username", "user__email")
+	readonly_fields = ("created_at", "updated_at")

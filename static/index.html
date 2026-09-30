@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#F7F2EB">
+  <meta name="description" content="A quieter way to organize your tasks, set thoughtful reminders, and stay close to what matters.">
+  <title>Taskora | Plan your day</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+  <div class="cursor-dot" aria-hidden="true"></div><div class="cursor-ring" aria-hidden="true"></div>
+  <header class="site-header" id="site-header">
+    <nav class="nav-wrap" aria-label="Main navigation">
+      <a class="brand" href="#home"><span class="brand-mark">T</span> taskora<span class="brand-period">.</span></a>
+      <button class="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false"><span></span><span></span></button>
+      <div class="nav-links">
+        <a href="#home" class="active">Home</a>
+        <a data-backend-path="/login/" href="#backend-required">Log in</a>
+        <a class="nav-cta" data-backend-path="/register/" href="#backend-required">Get started <span aria-hidden="true">&#8599;</span></a>
+      </div>
+    </nav>
+  </header>
+  <main id="home">
+    <section class="hero section-shell">
+      <div class="hero-copy page-enter">
+        <p class="eyebrow"><span class="eyebrow-rule"></span> MAKE ROOM FOR WHAT MATTERS</p>
+        <h1>Plan your day.<br><em>Remember</em> what matters.</h1>
+        <p class="hero-intro">A quieter way to organize your tasks, set thoughtful reminders, and stay close to the things you want to get done.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" data-backend-path="/register/" href="#backend-required">Get started <span aria-hidden="true">&#8599;</span></a>
+          <a class="text-link" data-backend-path="/login/" href="#backend-required">I have an account <span aria-hidden="true">&#8594;</span></a>
+        </div>
+        <p class="muted" id="backend-required" hidden>Account access is not connected to this frontend deployment yet.</p>
+        <div class="hero-note"><span class="note-line"></span> A little more focus, every day.</div>
+      </div>
+      <div class="hero-art page-enter" aria-label="A preview of a calm, organized task list">
+        <div class="art-orbit orbit-one"></div><div class="art-orbit orbit-two"></div>
+        <div class="preview-window">
+          <div class="preview-top"><span class="preview-brand"><i></i> your day</span><span class="preview-date">MONDAY, 09:41</span></div>
+          <div class="preview-greeting">A day with intention<span>.</span></div>
+          <div class="preview-progress"><span>YOUR FOCUS</span><strong>02 <small>/ 04</small></strong></div>
+          <div class="preview-task done"><span class="task-check">&#10003;</span><div><strong>Review the project brief</strong><small>09:00 AM <b>DONE</b></small></div></div>
+          <div class="preview-task"><span class="task-check"></span><div><strong>Prepare for the client call</strong><small>11:30 AM <b>IN 1H 20M</b></small></div><span class="task-reminder">&#9678;</span></div>
+          <div class="preview-task"><span class="task-check"></span><div><strong>Take a proper lunch break</strong><small>12:45 PM</small></div></div>
+          <div class="preview-bottom"><span class="tiny-avatar">T</span><span>YOUR SPACE, YOUR PACE</span><span class="preview-plus">+</span></div>
+        </div>
+        <div class="art-note"><span>&#9678;</span><div><strong>A gentle nudge</strong><small>Right when you need it.</small></div></div>
+      </div>
+    </section>
+    <section class="principles section-shell">
+      <div class="section-kicker"><span>01</span><span>THE EVERYDAY, MADE EASIER</span></div>
+      <div class="principle-grid">
+        <article><span class="feature-index">01 /</span><h3>Smart task<br>management</h3><p>Keep all the moving pieces in one considered, personal space.</p></article>
+        <article><span class="feature-index">02 /</span><h3>Reminders with<br>good timing</h3><p>Choose a moment that gives you room to prepare, not just react.</p></article>
+        <article><span class="feature-index">03 /</span><h3>Progress you<br>can feel</h3><p>See what is done, what is next, and how far you have come.</p></article>
+        <article><span class="feature-index">04 /</span><h3>A space that is<br>only yours</h3><p>Your plans stay private, organized, and ready when you are.</p></article>
+      </div>
+    </section>
+    <section class="how-section">
+      <div class="section-shell">
+        <div class="section-kicker"><span>02</span><span>A SIMPLE RHYTHM</span></div>
+        <div class="how-heading"><h2>From thought<br>to <em>done.</em></h2><p>Good systems should feel natural. Start with what is on your mind, and let Taskora help with the rest.</p></div>
+        <div class="steps-grid">
+          <article><span>01</span><h3>Make it yours</h3><p>Create your account and settle into your own clear space.</p></article>
+          <article><span>02</span><h3>Set the intention</h3><p>Add a task, a little context, and when you want it done.</p></article>
+          <article><span>03</span><h3>Get a gentle nudge</h3><p>Choose a reminder and keep Taskora open for timely alerts.</p></article>
+          <article><span>04</span><h3>Close the loop</h3><p>Mark it complete and make space for whatever comes next.</p></article>
+        </div>
+      </div>
+    </section>
+    <section class="closing-cta section-shell">
+      <div><p class="eyebrow">YOUR NEXT CHAPTER STARTS SMALL</p><h2>Ready to take control<br>of your <em>tasks?</em></h2></div>
+      <a class="button button-light" data-backend-path="/register/" href="#backend-required">Create your first task <span aria-hidden="true">&#8599;</span></a>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <a class="brand" href="#home"><span class="brand-mark">T</span> taskora<span class="brand-period">.</span></a>
+      <p>Organize your time. Accomplish what matters.</p>
+      <div class="footer-links"><a href="#home">Home</a><a data-backend-path="/login/" href="#backend-required">Log in</a><a data-backend-path="/register/" href="#backend-required">Register</a></div>
+      <small>&copy; 2026 Taskora. All rights reserved.</small>
+    </div>
+  </footer>
+  <script src="./js/main.js" defer></script>
+  <script src="./js/backend-links.js" defer></script>
+</body>
+</html>

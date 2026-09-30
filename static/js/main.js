@@ -1,272 +1,176 @@
-document.addEventListener('DOMContentLoaded', () => {
-    initCustomCursor();
-    initPasswordToggles();
-    initMobileNavigation();
-    initDeleteModal();
-    initTaskReminderSystem();
-    initToasts();
-    handleNotificationPrompt();
-});
+(() => {
+  const header = document.querySelector("#site-header");
+  const menuToggle = document.querySelector(".menu-toggle");
+  const navLinks = document.querySelector(".nav-links");
 
-function initCustomCursor() {
-    if (window.matchMedia('(pointer: coarse)').matches) {
-        document.body.classList.remove('cursor-enabled');
-        return;
-    }
+  const updateHeader = () => header?.classList.toggle("is-scrolled", window.scrollY > 8);
+  updateHeader();
+  window.addEventListener("scroll", updateHeader, { passive: true });
 
-    const dot = document.querySelector('.cursor-dot');
-    const ring = document.querySelector('.cursor-ring');
-    if (!dot || !ring) return;
+  menuToggle?.addEventListener("click", () => {
+    const open = menuToggle.getAttribute("aria-expanded") !== "true";
+    menuToggle.setAttribute("aria-expanded", String(open));
+    menuToggle.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+    navLinks?.classList.toggle("is-open", open);
+  });
 
-    document.body.classList.add('cursor-enabled');
-
-    let mouseX = 0;
-    let mouseY = 0;
-    let ringX = 0;
-    let ringY = 0;
-
-    document.addEventListener('pointermove', (event) => {
-        mouseX = event.clientX;
-        mouseY = event.clientY;
-        dot.style.left = `${mouseX}px`;
-        dot.style.top = `${mouseY}px`;
+  document.querySelectorAll(".password-toggle").forEach((button) => {
+    button.addEventListener("click", () => {
+      const input = button.parentElement.querySelector("input");
+      if (!input) return;
+      const showing = input.type === "password";
+      input.type = showing ? "text" : "password";
+      button.textContent = showing ? "Hide" : "Show";
+      button.setAttribute("aria-label", showing ? "Hide password" : "Show password");
     });
+  });
 
-    const animateCursor = () => {
-        ringX += (mouseX - ringX) * 0.14;
-        ringY += (mouseY - ringY) * 0.14;
-        ring.style.left = `${ringX}px`;
-        ring.style.top = `${ringY}px`;
-        requestAnimationFrame(animateCursor);
+  document.querySelectorAll(".toast").forEach((toast) => {
+    let timeout;
+    const dismiss = () => {
+      toast.classList.add("is-leaving");
+      window.setTimeout(() => toast.remove(), 320);
     };
+    toast.querySelector(".toast-close")?.addEventListener("click", dismiss);
+    timeout = window.setTimeout(dismiss, 5200);
+    toast.addEventListener("mouseenter", () => window.clearTimeout(timeout), { once: true });
+  });
 
-    requestAnimationFrame(animateCursor);
+  const overlay = document.querySelector("#reminder-overlay");
+  const reminderName = document.querySelector("#reminder-task-name");
+  const reminderOpen = document.querySelector("#reminder-open");
+  const reminderDismiss = document.querySelector("#reminder-dismiss");
+  const reminderQueue = [];
+  let reminderShowing = false;
 
-    const interactiveSelector = 'a, button, input, textarea, select, .task-card, .nav-link';
-    document.querySelectorAll(interactiveSelector).forEach((element) => {
-        element.addEventListener('mouseenter', () => {
-            ring.style.transform = 'translate(-50%, -50%) scale(1.45)';
-        });
+  const closeReminder = () => {
+    overlay?.classList.remove("is-open");
+    overlay?.setAttribute("aria-hidden", "true");
+    reminderShowing = false;
+    window.setTimeout(showNextReminder, 260);
+  };
 
-        element.addEventListener('mouseleave', () => {
-            ring.style.transform = 'translate(-50%, -50%) scale(1)';
-        });
-    });
-}
-
-function initPasswordToggles() {
-    document.querySelectorAll('.toggle-password').forEach((button) => {
-        button.addEventListener('click', () => {
-            const input = button.parentElement.querySelector('input');
-            if (!input) return;
-
-            const isPassword = input.type === 'password';
-            input.type = isPassword ? 'text' : 'password';
-            button.textContent = isPassword ? 'Hide' : 'Show';
-        });
-    });
-}
-
-function initMobileNavigation() {
-    const navToggle = document.querySelector('.nav-toggle');
-    const navMenu = document.querySelector('.nav-menu');
-    if (!navToggle || !navMenu) return;
-
-    navToggle.addEventListener('click', () => {
-        const isOpen = navMenu.classList.toggle('open');
-        navToggle.setAttribute('aria-expanded', String(isOpen));
-    });
-
-    document.querySelectorAll('.nav-link').forEach((link) => {
-        link.addEventListener('click', () => {
-            navMenu.classList.remove('open');
-            navToggle.setAttribute('aria-expanded', 'false');
-        });
-    });
-}
-
-function initDeleteModal() {
-    const modal = document.getElementById('delete-modal');
-    const deleteForm = document.getElementById('delete-form');
-    const deleteTaskName = document.getElementById('delete-task-name');
-    const cancelButton = document.getElementById('cancel-delete');
-
-    if (!modal || !deleteForm || !deleteTaskName || !cancelButton) return;
-
-    document.querySelectorAll('.open-delete').forEach((button) => {
-        button.addEventListener('click', () => {
-            const taskTitle = button.dataset.title || 'this task';
-            const taskUrl = button.dataset.url;
-            deleteTaskName.textContent = `Delete "${taskTitle}"?`;
-            deleteForm.setAttribute('action', taskUrl || '#');
-            modal.classList.remove('hidden');
-        });
-    });
-
-    cancelButton.addEventListener('click', () => modal.classList.add('hidden'));
-    modal.addEventListener('click', (event) => {
-        if (event.target === modal) {
-            modal.classList.add('hidden');
-        }
-    });
-}
-
-function initToasts() {
-    const container = document.getElementById('toast-container') || createToastContainer();
-
-    if (window.taskoraMessages && window.taskoraMessages.length) {
-        window.taskoraMessages.forEach((message) => {
-            showToast(message.text, message.tags || 'success');
-        });
+  const showNextReminder = () => {
+    if (reminderShowing || !reminderQueue.length || !overlay) return;
+    const reminder = reminderQueue.shift();
+    reminderShowing = true;
+    reminderName.textContent = reminder.title;
+    reminderOpen.href = reminder.url;
+    overlay.classList.add("is-open");
+    overlay.setAttribute("aria-hidden", "false");
+    const taskCard = document.querySelector(`[data-task-id="${reminder.id}"]`);
+    taskCard?.classList.add("reminder-highlight");
+    if ("Notification" in window && Notification.permission === "granted") {
+      const notification = new Notification("Taskora reminder", {
+        body: `Your task “${reminder.title}” is scheduled for now.`,
+        tag: `taskora-${reminder.id}`,
+      });
+      notification.onclick = () => {
+        window.focus();
+        window.location.href = reminder.url;
+      };
     }
-}
+  };
 
-function createToastContainer() {
-    const container = document.createElement('div');
-    container.id = 'toast-container';
-    container.className = 'toast-container';
-    document.body.appendChild(container);
-    return container;
-}
+  reminderDismiss?.addEventListener("click", closeReminder);
+  overlay?.addEventListener("click", (event) => {
+    if (event.target === overlay) closeReminder();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && reminderShowing) closeReminder();
+  });
 
-function showToast(message, type = 'success') {
-    const container = document.getElementById('toast-container') || createToastContainer();
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    toast.setAttribute('role', 'status');
-    toast.innerHTML = `
-        <button type="button" class="toast-close" aria-label="Close notification">×</button>
-        <span>${message}</span>
-    `;
-
-    toast.querySelector('.toast-close').addEventListener('click', () => toast.remove());
-    container.appendChild(toast);
-
-    setTimeout(() => {
-        toast.remove();
-    }, 4300);
-}
-
-function handleNotificationPrompt() {
-    const shouldRequest = sessionStorage.getItem('taskora_request_permission') === 'true';
-    if (shouldRequest) {
-        sessionStorage.removeItem('taskora_request_permission');
-        requestBrowserPermission();
+  const reminderData = document.querySelector("#reminder-data");
+  if (reminderData) {
+    let reminders = [];
+    try {
+      reminders = JSON.parse(reminderData.textContent);
+    } catch {
+      reminders = [];
     }
-
-    const notificationStatus = document.getElementById('notification-status');
-    if (!notificationStatus) return;
-
-    if ('Notification' in window && Notification.permission === 'denied') {
-        notificationStatus.textContent = "Browser notifications are disabled. You'll still receive reminders inside the dashboard.";
-        notificationStatus.classList.remove('hidden');
-    } else if ('Notification' in window && Notification.permission === 'granted') {
-        notificationStatus.textContent = 'Browser notifications are enabled for your reminders.';
-        notificationStatus.classList.remove('hidden');
-    }
-}
-
-function requestBrowserPermission() {
-    if (!('Notification' in window)) return false;
-
-    if (Notification.permission === 'granted') {
-        return true;
-    }
-
-    Notification.requestPermission().then((permission) => {
-        const notificationStatus = document.getElementById('notification-status');
-        if (permission === 'granted') {
-            if (notificationStatus) {
-                notificationStatus.textContent = 'Browser notifications are enabled for your reminders.';
-                notificationStatus.classList.remove('hidden');
-            }
-            return true;
-        }
-
-        if (notificationStatus) {
-            notificationStatus.textContent = "Browser notifications are disabled. You'll still receive reminders inside the dashboard.";
-            notificationStatus.classList.remove('hidden');
-        }
-        return false;
-    });
-
-    return false;
-}
-
-function initTaskReminderSystem() {
-    const tasks = window.taskoraDashboardTasks || [];
-    if (!Array.isArray(tasks) || tasks.length === 0) return;
-
-    const storageKey = 'taskora-reminded';
-    const reminded = new Set(JSON.parse(localStorage.getItem(storageKey) || '[]'));
-
     const checkReminders = () => {
-        const now = new Date();
-
-        tasks.forEach((task) => {
-            if (!task || task.completed) return;
-            const reminderTime = new Date(task.reminder_datetime);
-            const key = `${task.id}:${task.reminder_datetime}`;
-
-            if (!isNaN(reminderTime.getTime()) && reminderTime <= now && !reminded.has(key)) {
-                reminded.add(key);
-                localStorage.setItem(storageKey, JSON.stringify([...reminded]));
-                triggerTaskReminder(task);
-            }
-        });
+      const now = Date.now();
+      reminders.forEach((reminder) => {
+        const key = `taskora-reminder-${reminder.id}-${reminder.reminder}`;
+        if (Date.parse(reminder.reminder) <= now && !localStorage.getItem(key)) {
+          localStorage.setItem(key, "shown");
+          reminderQueue.push(reminder);
+        }
+      });
+      showNextReminder();
     };
-
     checkReminders();
-    setInterval(checkReminders, 30000);
+    window.setInterval(checkReminders, 15000);
+  }
 
-    const form = document.querySelector('.task-form');
-    if (form) {
-        form.addEventListener('submit', () => {
-            sessionStorage.setItem('taskora_request_permission', 'true');
-        });
+  const enableNotifications = document.querySelector("#enable-notifications");
+  enableNotifications?.addEventListener("click", async () => {
+    if (!("Notification" in window)) {
+      window.dispatchEvent(new CustomEvent("taskora:toast", { detail: "Browser notifications are not available here. Dashboard reminders will still appear." }));
+      return;
     }
-}
+    const permission = await Notification.requestPermission();
+    const text = permission === "granted"
+      ? "Browser notifications are enabled. Keep the dashboard open for reminders."
+      : "Browser notifications are disabled. You'll still receive reminders inside the dashboard.";
+    window.dispatchEvent(new CustomEvent("taskora:toast", { detail: text }));
+  });
 
-function triggerTaskReminder(task) {
-    const card = document.querySelector(`.task-card[data-id="${task.id}"]`);
-    if (card) {
-        card.classList.add('is-reminded');
-        setTimeout(() => card.classList.remove('is-reminded'), 2200);
-    }
+  window.addEventListener("taskora:toast", (event) => {
+    const stack = document.querySelector(".toast-stack");
+    if (!stack) return;
+    const toast = document.createElement("div");
+    toast.className = "toast toast-info";
+    const message = document.createElement("span");
+    message.textContent = event.detail;
+    const close = document.createElement("button");
+    close.className = "toast-close";
+    close.type = "button";
+    close.setAttribute("aria-label", "Dismiss notification");
+    close.textContent = "×";
+    close.addEventListener("click", () => toast.remove());
+    toast.append(message, close);
+    stack.append(toast);
+    window.setTimeout(() => toast.remove(), 5200);
+  });
 
-    const modal = document.getElementById('reminder-modal');
-    const taskName = document.getElementById('reminder-task-name');
-    const reminderText = document.getElementById('reminder-text');
-    const viewLink = document.getElementById('view-reminder-task');
-    const dismissButton = document.getElementById('dismiss-reminder');
-
-    if (modal && taskName && reminderText && viewLink && dismissButton) {
-        taskName.textContent = task.title;
-        reminderText.textContent = `Your scheduled task is due now.`;
-        viewLink.href = task.url;
-        modal.classList.remove('hidden');
-    }
-
-    if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification('Task Reminder', {
-            body: `Your task '${task.title}' is scheduled for now.`,
-            tag: `task-${task.id}`
-        });
-    }
-
-    showToast(`Reminder: ${task.title} is due now.`, 'info');
-}
-
-const reminderDismiss = document.getElementById('dismiss-reminder');
-if (reminderDismiss) {
-    reminderDismiss.addEventListener('click', () => {
-        const modal = document.getElementById('reminder-modal');
-        if (modal) modal.classList.add('hidden');
+  if (matchMedia("(hover: hover) and (pointer: fine)").matches) {
+    const dot = document.querySelector(".cursor-dot");
+    const ring = document.querySelector(".cursor-ring");
+    let pointerX = -100;
+    let pointerY = -100;
+    let ringX = pointerX;
+    let ringY = pointerY;
+    document.body.classList.add("custom-cursor");
+    window.addEventListener("mousemove", (event) => {
+      pointerX = event.clientX;
+      pointerY = event.clientY;
+      dot.style.left = `${pointerX}px`;
+      dot.style.top = `${pointerY}px`;
+      dot.classList.add("is-visible");
+      ring.classList.add("is-visible");
+    }, { passive: true });
+    const followPointer = () => {
+      ringX += (pointerX - ringX) * 0.19;
+      ringY += (pointerY - ringY) * 0.19;
+      ring.style.left = `${ringX}px`;
+      ring.style.top = `${ringY}px`;
+      requestAnimationFrame(followPointer);
+    };
+    requestAnimationFrame(followPointer);
+    document.addEventListener("mouseover", (event) => {
+      if (event.target.closest("a, button, input, textarea, select, .task-card")) ring.classList.add("is-hovering");
     });
-}
-
-window.addEventListener('scroll', () => {
-    const header = document.querySelector('.site-header');
-    if (!header) return;
-    header.classList.toggle('scrolled', window.scrollY > 8);
-});
+    document.addEventListener("mouseout", (event) => {
+      if (event.target.closest("a, button, input, textarea, select, .task-card")) ring.classList.remove("is-hovering");
+    });
+    document.addEventListener("mouseleave", () => {
+      dot.classList.remove("is-visible");
+      ring.classList.remove("is-visible");
+    });
+    document.addEventListener("mouseenter", () => {
+      dot.classList.add("is-visible");
+      ring.classList.add("is-visible");
+    });
+  }
+})();
